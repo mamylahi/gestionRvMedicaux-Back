@@ -29,4 +29,18 @@ class MedecinRequest extends FormRequest
             'departement_id' => 'nullable|exists:departements,id',
         ];
     }
+
+    public function messages(): array{
+        return [
+            'numero_medecin.required' => 'le numero medecin est obligatoire',
+            'disponible.boolean' => 'le statut est obligatoire',
+            'user_id.required' => 'L utilisateur est obligatoire',
+            'specialite_id.exists' => 'La specialite est obligatoire',
+            'departement_id.exists' => 'La departement est obligatoire',
+
+        ];
+    }
+
+
+
 }

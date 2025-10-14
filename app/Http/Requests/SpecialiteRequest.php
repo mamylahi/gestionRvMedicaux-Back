@@ -25,4 +25,10 @@ class SpecialiteRequest extends FormRequest
             'nom' => 'required|string',
         ];
     }
+
+    public function messages(): array{
+        return [
+            'nom.required' => 'le nom de la spécialité est obligatoire',
+        ];
+    }
 }

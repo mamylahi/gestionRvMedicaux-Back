@@ -27,4 +27,15 @@ class DossierMedicalRequest extends FormRequest
             'date_creation' => 'required|date',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'date_creation.required' => 'La date de creation est obligatoire',
+            'patient_id.required' => 'Le patient est obligatoire',
+            'groupe_sanguin.required' => 'Le groupe sanguin est obligatoire',
+        ];
+    }
+
+
 }

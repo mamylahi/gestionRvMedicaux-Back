@@ -29,4 +29,16 @@ class PaiementRequest extends FormRequest
             'statut' => 'in:en_attente,valide,annule',
         ];
     }
+
+    public function messages(): array{
+        return [
+            'consultation_id.required' => 'ID consultation est obligatoire',
+            'montant.required' => 'Montant est obligatoire',
+            'date_paiement.required' => 'Date de paiement est obligatoire',
+            "moyen_paiement.required" => "Moyen de payement est obligatoire",
+            'statut.in' => 'Statut est obligatoire',
+        ];
+    }
+
+
 }

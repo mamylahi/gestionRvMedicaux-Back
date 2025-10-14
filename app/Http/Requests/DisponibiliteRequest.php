@@ -28,4 +28,16 @@ class DisponibiliteRequest extends FormRequest
             'recurrent' => 'boolean',
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'medecin_id.required' => 'Le medecin est obligatoire',
+            'date_debut.required' => 'La date de debut est obligatoire',
+            'date_fin.date' => 'La date de fin est obligatoire',
+            'recurrent.boolean' => 'Le reccurent est obligatoire',
+        ];
+    }
+
+
+
 }

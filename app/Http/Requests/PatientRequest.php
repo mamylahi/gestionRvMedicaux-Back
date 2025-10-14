@@ -26,4 +26,14 @@ class PatientRequest extends FormRequest
             'user_id' => 'required|exists:users,id',
         ];
     }
+
+
+
+    public function messages(): array{
+        return [
+            'numero_patient.required' => 'ID patient est obligatoire',
+            'user_id.required' => 'l ID utilisateur est obligatoire',
+        ];
+    }
+
 }

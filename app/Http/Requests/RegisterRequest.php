@@ -31,4 +31,22 @@ class RegisterRequest extends FormRequest
             'role' => 'required|in:admin,medecin,secretaire,patient',
         ];
     }
+
+
+
+
+    public function messages(): array{
+        return [
+            'nom.required' => 'Le nom est obligatoire.',
+            'prenom.required' => 'Le prenom est obligatoire.',
+            'adresse.required' => 'L\'adresse est obligatoire.',
+            'telephone.required' => 'Le telephone est obligatoire.',
+            'email.required' => 'L\'email est obligatoire.',
+            'password.required' => 'Le mot de passe est obligatoire.',
+            'role.required' => 'Le role est obligatoire.',
+        ];
+
+    }
+
+
 }

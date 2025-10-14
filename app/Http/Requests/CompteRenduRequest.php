@@ -29,4 +29,15 @@ class CompteRenduRequest extends FormRequest
             'date_creation' => 'required|date',
         ];
     }
+    public function messages(): array{
+        return [
+            'consultation_id.required' => 'ID consultation est obligatoire',
+            'traitement.required' => 'Le traitement est obligatoire',
+            'diagnostic.required' => 'Le diagnostic est obligatoire',
+            'observation.required' => ' observation est obligatoire',
+            'date_creation.required' => 'Date de creation est obligatoire',
+        ];
+    }
+
+
 }

@@ -26,4 +26,13 @@ class ConsultationRequest extends FormRequest
             'date_consultation' => 'required|date',
         ];
     }
+
+    public function messages(): array{
+        return [
+            'rendezvous_id.required' => 'ID rendezvous est obligatoire',
+            'date_consultation.required' => 'Date de consultation est obligatoire',
+        ];
+    }
+
+
 }

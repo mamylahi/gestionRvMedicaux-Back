@@ -30,4 +30,19 @@ class RendezVousRequest extends FormRequest
             'statut' => 'in:en_attente,confirme,annule,termine',
         ];
     }
+
+
+
+    public function messages(): array{
+        return [
+            'patient_id.required' => 'ID patient est obligatoire',
+            'medecin_id.required' => 'ID medecin est obligatoire',
+            'date_rendezvous.required' => 'Date de rendezvous est obligatoire',
+            'heure_rendezvous.required' => 'Heure de rendezvous est obligatoire',
+            'motif.required' => ' le Motif est obligatoire',
+            'statut.required' => 'le statut est obligatoire',
+        ];
+    }
+
+
 }

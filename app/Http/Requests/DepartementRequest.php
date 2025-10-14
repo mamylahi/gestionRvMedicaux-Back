@@ -26,4 +26,13 @@ class DepartementRequest extends FormRequest
             'description' => 'nullable|string',
         ];
     }
+    public function messages(): array{
+        return [
+            'nom.required' => 'Le nom de département est obligatoire',
+            'description.string' => 'La description est obligatoire',
+        ];
+    }
+
+
+
 }
