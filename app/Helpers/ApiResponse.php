@@ -4,7 +4,7 @@ namespace App\Helpers;
 class ApiResponse
 {
 
-//Réponse succès
+//Réponse succèes
 
     public static function success($data = [], $code = 200, $message = null)
     {
