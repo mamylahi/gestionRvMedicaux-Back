@@ -56,8 +56,7 @@ class AuthController extends Controller
      */
     public function index()
     {
-        $users = $this->authService->getAll();
-        return response()->json($users);
+        return $this->authService->getAll();
     }
 
     /**
@@ -65,8 +64,7 @@ class AuthController extends Controller
      */
     public function show(int $id)
     {
-        $user = $this->authService->show($id);
-        return response()->json($user);
+        return $this->authService->show($id);
     }
 
     /**
@@ -74,8 +72,8 @@ class AuthController extends Controller
      */
     public function update(RegisterRequest $request, int $id)
     {
-        $user = $this->authService->update($request->validated(), $id);
-        return response()->json($user);
+        return $this->authService->update($request->validated(), $id);
+
     }
 
     /**
