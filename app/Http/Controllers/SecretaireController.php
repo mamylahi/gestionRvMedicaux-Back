@@ -18,8 +18,7 @@ class SecretaireController extends Controller
     }
     public function index()
     {
-        $secretaire = $this->secretaireService->index();
-        return response()->json($secretaire,200);
+       return $this->secretaireService->index();
     }
 
     /**
@@ -27,8 +26,7 @@ class SecretaireController extends Controller
      */
     public function store(SecretaireRequest $request)
     {
-        $secretaire = $this->secretaireService->store($request->validated());
-        return response()->json($secretaire,201);
+      return $this->secretaireService->store($request->validated());
     }
 
     /**
@@ -36,8 +34,7 @@ class SecretaireController extends Controller
      */
     public function show(string $id)
     {
-        $secretaire = $this->secretaireService->show($id);
-        return response()->json($secretaire,200);
+       return $this->secretaireService->show($id);
     }
 
     /**
@@ -45,11 +42,8 @@ class SecretaireController extends Controller
      */
     public function update(SecretaireRequest $request, string $id)
     {
-        $secretaire = $this->secretaireService->update($request->validated(), $id);
-        return response()->json([
-            "message" => "secretaire modifié",
-            "secretaire" => $secretaire
-        ]);
+        return $this->secretaireService->update($request->validated(), $id);
+
     }
 
     /**
@@ -57,7 +51,6 @@ class SecretaireController extends Controller
      */
     public function destroy(string $id)
     {
-        $secretaire = $this->secretaireService->index();
-        return response()->json("secretaire",204);
+       return $this->secretaireService->index();
     }
 }

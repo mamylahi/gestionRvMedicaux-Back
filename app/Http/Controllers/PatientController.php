@@ -18,8 +18,7 @@ class PatientController extends Controller
     }
     public function index()
     {
-        $patient = $this->patientService->index();
-        return response()->json($patient,200);
+        return $this->patientService->index();
     }
 
     /**
@@ -27,8 +26,8 @@ class PatientController extends Controller
      */
     public function store(PatientRequest $request)
     {
-        $patient = $this->patientService->store($request->validated());
-        return response()->json($patient,201);
+        return $this->patientService->store($request->validated());
+
     }
 
     /**
@@ -36,8 +35,7 @@ class PatientController extends Controller
      */
     public function show(string $id)
     {
-        $patient = $this->patientService->show($id);
-        return response()->json($patient,200);
+       return $this->patientService->show($id);
     }
 
     /**
@@ -45,11 +43,8 @@ class PatientController extends Controller
      */
     public function update(PatientRequest $request, string $id)
     {
-        $patient = $this->patientService->index();
-        return response()->json([
-            "message" => "patient modifié",
-            "patient" => $patient,
-        ]);
+        return $this->patientService->index();
+
     }
 
     /**
@@ -57,7 +52,7 @@ class PatientController extends Controller
      */
     public function destroy(string $id)
     {
-        $patient = $this->patientService->destroy($id);
-        return response()->json("patient supprimé",204);
+       return $this->patientService->destroy($id);
+
     }
 }

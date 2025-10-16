@@ -19,8 +19,8 @@ class MedecinController extends Controller
 
     public function index()
     {
-        $medecin = $this->medecinService->index();
-        return response()->json($medecin,200);
+        return $this->medecinService->index();
+
     }
 
     /**
@@ -28,8 +28,7 @@ class MedecinController extends Controller
      */
     public function store(MedecinRequest $request)
     {
-        $medecin = $this->medecinService->store($request->validated());
-        return response()->json($medecin,201);
+        return $this->medecinService->store($request->validated());
     }
 
     /**
@@ -37,8 +36,8 @@ class MedecinController extends Controller
      */
     public function show(string $id)
     {
-        $medecin = $this->medecinService->show($id);
-        return response()->json($medecin,200);
+        return $this->medecinService->show($id);
+
     }
 
     /**
@@ -46,11 +45,8 @@ class MedecinController extends Controller
      */
     public function update(MedecinRequest $request, string $id)
     {
-        $medecin = $this->medecinService->update($request->validated(), $id);
-        return response()->json([
-            "message" => "medecin modifié",
-            "medecin" => $medecin
-        ]);
+        return $this->medecinService->update($request->validated(), $id);
+
     }
 
     /**
@@ -58,7 +54,7 @@ class MedecinController extends Controller
      */
     public function destroy(string $id)
     {
-        $medecin = $this->medecinService->destroy($id);
-        return response()->json("medecin supprimé",204);
+        return $this->medecinService->destroy($id);
+
     }
 }
