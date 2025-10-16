@@ -4,9 +4,6 @@ namespace App\Services;
 
 use App\Helpers\ApiResponse;
 use App\Http\Resources\UserResource;
-use App\Models\Medecin;
-use App\Models\Patient;
-use App\Models\Secretaire;
 use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -26,44 +23,6 @@ class AuthService
                 'role'      => $request['role'],
             ]);
 
-            // 🔹 Si c'est une secrétaire, on ajoute dans la table "secretaire"
-//            switch ($request['role']) {
-//                case 'secretaire':
-//                    $lastSecretaire = Secretaire::latest('id')->first();
-//                    $nextId = $lastSecretaire ? $lastSecretaire->id + 1 : 1;
-//                    $numeroEmploye = 'EMP-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-//
-//                    Secretaire::create([
-//                        'user_id'        => $user->id,
-//                        'numero_employe' => $numeroEmploye,
-//                    ]);
-//                    break;
-//
-//                case 'medecin':
-//                    $lastMedecin = Medecin::latest('id')->first();
-//                    $nextId = $lastMedecin ? $lastMedecin->id + 1 : 1;
-//                    $numeroMedecin = 'MED-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-//
-//                    Medecin::create([
-//                        'user_id'       => $user->id,
-//                        'numero_medecin'=> $numeroMedecin,
-//                        // tu peux ajouter d’autres colonnes spécifiques (spécialité, etc.)
-//                    ]);
-//                    break;
-//
-//                case 'patient':
-//                    $lastPatient = Patient::latest('id')->first();
-//                    $nextId = $lastPatient ? $lastPatient->id + 1 : 1;
-//                    $numeroPatient = 'PAT-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
-//
-//                    Patient::create([
-//                        'user_id'       => $user->id,
-//                        'numero_patient'=> $numeroPatient,
-//                        // tu peux ajouter d’autres colonnes spécifiques (groupe sanguin, etc.)
-//                    ]);
-//                    break;
-//            }
-
             // Génération du token JWT
             $token = JWTAuth::fromUser($user);
 
@@ -77,7 +36,6 @@ class AuthService
             return ApiResponse::error($th->getMessage(), 500);
         }
     }
-
 
     public function login(array $request)
     {
@@ -106,6 +64,7 @@ class AuthService
             return ApiResponse::error($e->getMessage(), 500);
         }
     }
+
     public function getAuthenticatedUser()
     {
         try {
@@ -142,9 +101,6 @@ class AuthService
         }
     }
 
-    /**
-     * Supprimer un utilisateur
-     */
     public function destroy($id)
     {
         try {
