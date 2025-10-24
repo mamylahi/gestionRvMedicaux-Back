@@ -46,4 +46,32 @@ class SecretaireController extends Controller
        return $this->secretaireService->index();
     }
 
+    /**
+     * Récupérer les RendezVous à venir
+     * Route: GET /secretaires/rendez-vous
+     */
+    public function getRendezVousAVenir()
+    {
+        return $this->secretaireService->getRendezVousAVenir();
+    }
+
+    /**
+     * Récupérer les DossiersMedicaux des patient
+     * Route: GET /secretaires/dossiers-medicaux
+     */
+    public function getDossiersMedicaux()
+    {
+        return $this->secretaireService->getDossiersMedicaux();
+    }
+
+    /**
+     * Récupérer les paiement effectué
+     * Route: GET /secretaires/paiements
+     */
+    public function getPaiementsNonPayes()
+    {
+        return $this->secretaireService->getPaiementsNonPayes();
+    }
+
+
 }

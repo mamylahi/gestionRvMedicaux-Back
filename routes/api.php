@@ -109,4 +109,18 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/mes-consultations', [PatientController::class, 'getMesConsultations']);
         Route::get('/mon-dossier-medical', [PatientController::class, 'getMonDossierMedical']);
     });
+
+    Route::prefix('medecins')->group(function () {
+        Route::get('/mes-rendezvous', [MedecinController::class, 'getMesRendezVous']);
+        Route::get('/mes-patients', [MedecinController::class, 'getMesPatients']);
+        Route::get('/mes-consultations', [MedecinController::class, 'getMesConsultations']);
+        Route::get('/dossier-medicaux', [MedecinController::class, 'getDossierMedicaux']);
+        Route::get('/compte-rendus', [MedecinController::class, 'getCompteRenduPatients']);
+    });
+    Route::prefix('secretaires')->group(function () {
+        Route::get('/mes-rendezvous', [SecretaireController::class, 'getRendezVousAVenir']);
+        Route::get('/dossier-medicaux', [SecretaireController::class, 'getDossierMedicaux']);
+        Route::get('/paiements', [SecretaireController::class, 'getPaiementsNonPayes']);
+    });
+
 });

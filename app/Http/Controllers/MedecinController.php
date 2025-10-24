@@ -84,4 +84,40 @@ class MedecinController extends Controller
     public function getOrphanMedecins(){
         return response()->json($this->medecinService->getOrphanMedecins(), 200);
     }
+
+    public function getMesRendezVous()
+    {
+        return $this->medecinService->getMesRendezVous();
+    }
+
+    /**
+     * Récupérer les dossier médical des patients
+     * Route: GET /medecins/dossier-medicaux
+     */
+    public function getDossierMedicaux()
+    {
+        return $this->patientService->getDossierMedicaux();
+    }
+    /**
+     * Récupérer les consultations du patient connecté
+     * Route: GET /medecins/mes-consultations
+     */
+    public function getMesConsultations()
+    {
+        return $this->medecinService->getMesConsultations();
+    }
+
+    /**
+     * Récupérer le dossier médical du patient connecté
+     * Route: GET /medecins/mes-patients
+     */
+    public function getMesPatients()
+    {
+        return $this->medecinService->getMesPatients();
+    }
+ public function getCompteRenduPatients()
+    {
+        return $this->medecinService->getCompteRenduPatients();
+    }
+
 }
