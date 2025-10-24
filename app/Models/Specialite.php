@@ -15,4 +15,9 @@ class Specialite extends Model
     {
         return $this->hasMany(Medecin::class);
     }
+
+    public function departement()
+    {
+        return $this->belongsTo(Departement::class);
+    }
 }

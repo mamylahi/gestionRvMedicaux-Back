@@ -10,8 +10,8 @@ class Departement extends Model
     use HasFactory;
 
 protected $guarded = [];
-    public function medecins()
+    public function specialites()
     {
-        return $this->hasMany(Medecin::class);
+        return $this->hasMany(Specialite::class);
     }
 }

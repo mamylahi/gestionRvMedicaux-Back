@@ -61,4 +61,13 @@ class DossierMedicalController extends Controller
         $dossierMedical = $this->dossierMedicalService->destroy($id);
         return response()->json("dossier medical supprimé",204);
     }
+
+    /**
+     * Récupérer le dossier médical d'un patient
+     */
+    public function getByPatient(string $patientId)
+    {
+        $dossierMedical = $this->dossierMedicalService->getByPatient($patientId);
+        return response()->json($dossierMedical, 200);
+    }
 }

@@ -25,8 +25,7 @@ class MedecinRequest extends FormRequest
             'numero_medecin' => 'required|string',
             'disponible' => 'boolean',
             'user_id' => 'required|exists:users,id',
-            'specialite_id' => 'nullable|exists:specialites,id',
-            'departement_id' => 'nullable|exists:departements,id',
+            'specialite_id' => 'required|exists:specialites,id',
         ];
     }
 

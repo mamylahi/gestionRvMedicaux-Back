@@ -60,4 +60,38 @@ class PaiementController extends Controller
         $paiement = $this->paiementService->destroy($id);
         return response()->json("paiement supprimé",200);
     }
+
+    /**
+     * Récupérer le paiement d'une consultation
+     */
+    public function getByConsultation(string $consultationId)
+    {
+        $paiement = $this->paiementService->getByConsultation($consultationId);
+        return response()->json($paiement, 200);
+    }
+
+    /**
+     * Récupérer tous les paiements d'un patient
+     */
+    public function getByPatient(string $patientId)
+    {
+        $paiements = $this->paiementService->getByPatient($patientId);
+        return response()->json($paiements, 200);
+    }
+
+    /**
+     * Mettre à jour le statut d'un paiement
+     */
+    public function updateStatut(Request $request, string $id)
+    {
+        $request->validate([
+            'statut' => 'required|in:en_attente,valide,annule'
+        ]);
+
+        $paiement = $this->paiementService->updateStatut($id, $request->statut);
+        return response()->json([
+            "message" => "Statut du paiement mis à jour",
+            "paiement" => $paiement
+        ], 200);
+    }
 }

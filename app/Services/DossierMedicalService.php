@@ -39,4 +39,11 @@ class DossierMedicalService
     {
         DossierMedical::destroy($id);
     }
+
+    public function getByPatient(string $patientId)
+    {
+        return DossierMedical::with(['patient.user'])
+            ->where('patient_id', $patientId)
+            ->first();
+    }
 }

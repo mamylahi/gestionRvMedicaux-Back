@@ -39,4 +39,12 @@ class DisponibiliteService
     {
         Disponibilite::destroy($id);
     }
+
+    public function getByMedecin(string $medecinId)
+    {
+        return Disponibilite::with(['medecin.user'])
+            ->where('medecin_id', $medecinId)
+            ->orderBy('date_debut', 'asc')
+            ->get();
+    }
 }

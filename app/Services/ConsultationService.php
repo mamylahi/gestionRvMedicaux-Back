@@ -39,4 +39,49 @@ class ConsultationService
     {
         Consultation::destroy($id);
     }
+
+
+    public function getByRendezVous(string $rendezVousId)
+    {
+        return Consultation::with([
+            'rendezvous.patient.user',
+            'rendezvous.medecin.user',
+            'rendezvous.medecin.specialite',
+            'compteRendu',
+            'paiement'
+        ])
+            ->where('rendezvous_id', $rendezVousId)
+            ->first();
+    }
+
+
+    public function getByMedecin(string $medecinId)
+    {
+        return Consultation::with([
+            'rendezvous.patient.user',
+            'compteRendu',
+            'paiement'
+        ])
+            ->whereHas('rendezvous', function($query) use ($medecinId) {
+                $query->where('medecin_id', $medecinId);
+            })
+            ->orderBy('date_consultation', 'desc')
+            ->get();
+    }
+
+
+    public function getByPatient(string $patientId)
+    {
+        return Consultation::with([
+            'rendezvous.medecin.user',
+            'rendezvous.medecin.specialite',
+            'compteRendu',
+            'paiement'
+        ])
+            ->whereHas('rendezvous', function($query) use ($patientId) {
+                $query->where('patient_id', $patientId);
+            })
+            ->orderBy('date_consultation', 'desc')
+            ->get();
+    }
 }

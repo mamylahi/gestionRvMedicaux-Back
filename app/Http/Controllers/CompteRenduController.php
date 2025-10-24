@@ -63,4 +63,31 @@ class CompteRenduController extends Controller
         $compteRendu = $this->compteRenduService->destroy($id);
         return response()->json("compte rendu supprimé", 204);
     }
+
+    /**
+     * Récupérer le compte rendu d'une consultation
+     */
+    public function getByConsultation(string $consultationId)
+    {
+        $compteRendu = $this->compteRenduService->getByConsultation($consultationId);
+        return response()->json($compteRendu, 200);
+    }
+
+    /**
+     * Récupérer tous les comptes rendus d'un médecin
+     */
+    public function getByMedecin(string $medecinId)
+    {
+        $comptesRendus = $this->compteRenduService->getByMedecin($medecinId);
+        return response()->json($comptesRendus, 200);
+    }
+
+    /**
+     * Récupérer tous les comptes rendus d'un patient
+     */
+    public function getByPatient(string $patientId)
+    {
+        $comptesRendus = $this->compteRenduService->getByPatient($patientId);
+        return response()->json($comptesRendus, 200);
+    }
 }

@@ -23,12 +23,14 @@ class SpecialiteRequest extends FormRequest
     {
         return [
             'nom' => 'required|string',
+            'departement_id' => 'required|exists:departements,id',
         ];
     }
 
     public function messages(): array{
         return [
             'nom.required' => 'le nom de la spécialité est obligatoire',
+            'department_id.required' => 'le departement de la spécialité est obligatoire',
         ];
     }
 }

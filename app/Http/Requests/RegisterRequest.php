@@ -21,7 +21,7 @@ class RegisterRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'nom' => 'required|string|max:100',
             'prenom' => 'required|string|max:100',
             'adresse' => 'nullable|string|max:255',
@@ -30,6 +30,15 @@ class RegisterRequest extends FormRequest
             'password' => 'required|string|min:6',
             'role' => 'required|in:admin,medecin,secretaire,patient',
         ];
+
+        // Si le rôle est médecin, la spécialité est obligatoire
+        if ($this->input('role') === 'medecin') {
+            $rules['specialite_id'] = 'required|exists:specialites,id';
+            $rules['disponible'] = 'nullable|boolean';
+        }
+
+        return $rules;
+
     }
 
 
@@ -44,6 +53,9 @@ class RegisterRequest extends FormRequest
             'email.required' => 'L\'email est obligatoire.',
             'password.required' => 'Le mot de passe est obligatoire.',
             'role.required' => 'Le role est obligatoire.',
+            'specialite_id.required' => 'La spécialité est obligatoire pour un médecin.',
+            'specialite_id.exists' => 'La spécialité sélectionnée n\'existe pas.',
+            'disponible.boolean' => 'Le statut de disponibilité doit être vrai ou faux.',
         ];
 
     }

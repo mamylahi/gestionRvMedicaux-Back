@@ -23,13 +23,6 @@ class MedecinController extends Controller
 
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(MedecinRequest $request)
-    {
-        return $this->medecinService->store($request->validated());
-    }
 
     /**
      * Display the specified resource.
@@ -56,5 +49,39 @@ class MedecinController extends Controller
     {
         return $this->medecinService->destroy($id);
 
+    }
+
+    /**
+    * Récupérer tous les médecins disponibles
+    */
+    public function getDisponibles()
+    {
+        $medecins = $this->medecinService->getDisponibles();
+        return response()->json($medecins, 200);
+    }
+
+    /**
+     * Récupérer les médecins par spécialité
+     */
+    public function getBySpecialite(string $specialiteId)
+    {
+        $medecins = $this->medecinService->getBySpecialite($specialiteId);
+        return response()->json($medecins, 200);
+    }
+
+    /**
+     * Dashboard médecin avec statistiques
+     */
+    public function getDashboard(string $medecinId)
+    {
+        $dashboard = $this->medecinService->getDashboard($medecinId);
+        return response()->json($dashboard, 200);
+    }
+
+    /**
+     * Récupérer les utilisateurs avec rôle 'medecin' mais pas dans la table medecin
+     */
+    public function getOrphanMedecins(){
+        return response()->json($this->medecinService->getOrphanMedecins(), 200);
     }
 }

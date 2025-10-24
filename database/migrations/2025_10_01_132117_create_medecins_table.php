@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('numero_medecin')->unique();
             $table->boolean('disponible')->default(true);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('specialite_id')->nullable()->constrained('specialites')->onDelete('set null');
-            $table->foreignId('departement_id')->nullable()->constrained('departements')->onDelete('set null');
+            $table->foreignId('specialite_id')->constrained('specialites')->onDelete('set null');
             $table->timestamps();
         });
     }

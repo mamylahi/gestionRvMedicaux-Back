@@ -63,4 +63,31 @@ class ConsultationController extends Controller
         $consultation = $this->consultationService->destroy($id);
         return response()->json("consultation supprimé",204);
     }
+
+    /**
+     * Récupérer la consultation d'un rendez-vous
+     */
+    public function getByRendezVous(string $rendezVousId)
+    {
+        $consultation = $this->consultationService->getByRendezVous($rendezVousId);
+        return response()->json($consultation, 200);
+    }
+
+    /**
+     * Récupérer toutes les consultations d'un médecin
+     */
+    public function getByMedecin(string $medecinId)
+    {
+        $consultations = $this->consultationService->getByMedecin($medecinId);
+        return response()->json($consultations, 200);
+    }
+
+    /**
+     * Récupérer toutes les consultations d'un patient
+     */
+    public function getByPatient(string $patientId)
+    {
+        $consultations = $this->consultationService->getByPatient($patientId);
+        return response()->json($consultations, 200);
+    }
 }

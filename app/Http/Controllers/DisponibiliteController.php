@@ -61,4 +61,13 @@ class DisponibiliteController extends Controller
         $disponibilite = $this->disponibiliteService->destroy($id);
         return response()->json("disponibilite supprimé",204);
     }
+
+    /**
+     * Récupérer les disponibilités d'un médecin
+     */
+    public function getByMedecin(string $medecinId)
+    {
+        $disponibilites = $this->disponibiliteService->getByMedecin($medecinId);
+        return response()->json($disponibilites, 200);
+    }
 }

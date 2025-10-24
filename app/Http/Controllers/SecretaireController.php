@@ -22,14 +22,6 @@ class SecretaireController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(SecretaireRequest $request)
-    {
-      return $this->secretaireService->store($request->validated());
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(string $id)
@@ -53,4 +45,5 @@ class SecretaireController extends Controller
     {
        return $this->secretaireService->index();
     }
+
 }

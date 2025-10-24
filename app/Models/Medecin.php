@@ -21,10 +21,6 @@ class Medecin extends Model
         return $this->belongsTo(Specialite::class);
     }
 
-    public function departement()
-    {
-        return $this->belongsTo(Departement::class);
-    }
 
     public function disponibilites()
     {
