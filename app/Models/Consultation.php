@@ -11,9 +11,13 @@ class Consultation extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'date_consultation' => 'date',
+    ];
+
     public function rendezvous()
     {
-        return $this->belongsTo(Rendezvous::class);
+        return $this->belongsTo(RendezVous::class, 'rendezvous_id');
     }
 
     public function compteRendu()

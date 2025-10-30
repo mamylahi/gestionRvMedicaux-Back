@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Patient;
 use App\Models\Medecin;
-use App\Models\RendezVous;
+use App\Models\Rendezvous;
 use App\Models\Consultation;
 use App\Models\Paiement;
 use App\Models\Departement;
@@ -54,18 +54,18 @@ class StatistiqueService
         $debutMois = Carbon::now()->startOfMonth();
 
         return [
-            'total' => RendezVous::count(),
-            'aujourdhui' => RendezVous::whereDate('date_rendezvous', $aujourdhui)->count(),
-            'ce_mois' => RendezVous::whereBetween('date_rendezvous', [$debutMois, Carbon::now()])->count(),
-            'par_statut' => RendezVous::select('statut', DB::raw('count(*) as total'))
+            'total' => Rendezvous::count(),
+            'aujourdhui' => Rendezvous::whereDate('date_rendezvous', $aujourdhui)->count(),
+            'ce_mois' => Rendezvous::whereBetween('date_rendezvous', [$debutMois, Carbon::now()])->count(),
+            'par_statut' => Rendezvous::select('statut', DB::raw('count(*) as total'))
                 ->groupBy('statut')
                 ->get()
                 ->pluck('total', 'statut'),
-            'en_attente' => RendezVous::where('statut', 'en_attente')->count(),
-            'confirmes' => RendezVous::where('statut', 'confirme')->count(),
-            'annules' => RendezVous::where('statut', 'annule')->count(),
-            'termines' => RendezVous::where('statut', 'termine')->count(),
-            'prochains_7_jours' => RendezVous::whereBetween('date_rendezvous', [
+            'en_attente' => Rendezvous::where('statut', 'en_attente')->count(),
+            'confirmes' => Rendezvous::where('statut', 'confirme')->count(),
+            'annules' => Rendezvous::where('statut', 'annule')->count(),
+            'termines' => Rendezvous::where('statut', 'termine')->count(),
+            'prochains_7_jours' => Rendezvous::whereBetween('date_rendezvous', [
                 Carbon::now(),
                 Carbon::now()->addDays(7)
             ])->count(),

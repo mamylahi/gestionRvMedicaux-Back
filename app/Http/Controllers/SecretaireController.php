@@ -47,7 +47,7 @@ class SecretaireController extends Controller
     }
 
     /**
-     * Récupérer les RendezVous à venir
+     * Récupérer les Rendezvous à venir
      * Route: GET /secretaires/rendez-vous
      */
     public function getRendezVousAVenir()

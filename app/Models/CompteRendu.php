@@ -10,6 +10,9 @@ class CompteRendu extends Model
     use HasFactory;
     protected $table = 'compterendus';
     protected $guarded = [];
+    protected $casts = [
+        'date_creation' => 'datetime',
+    ];
 
     public function consultation()
     {

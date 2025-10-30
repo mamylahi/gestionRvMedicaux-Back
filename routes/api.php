@@ -35,22 +35,42 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::get('/auth/me', [AuthController::class, 'me']);
 
-    // ========== USERS ==========
-
     // ========== MÉDECINS ==========
-    Route::get('/medecins/disponibles/all', [MedecinController::class, 'getDisponibles']);
-    Route::get('/medecins/specialite/{specialiteId}', [MedecinController::class, 'getBySpecialite']);
-    Route::get('/medecins/{medecinId}/dashboard', [MedecinController::class, 'getDashboard']);
+    // Routes spécifiques AVANT apiResource
+    Route::prefix('medecins')->group(function () {
+        Route::get('/mes-rendezvous', [MedecinController::class, 'getMesRendezVous']);
+        Route::get('/mes-patients', [MedecinController::class, 'getMesPatients']);
+        Route::get('/mes-consultations', [MedecinController::class, 'getMesConsultations']);
+        Route::get('/mes-dossiers-medicaux', [MedecinController::class, 'getMesDossiersMedicaux']);
+        Route::get('/mes-comptes-rendus', [MedecinController::class, 'getMesComptesRendus']);
+        Route::get('/mon-profil', [MedecinController::class, 'getMonProfil']);
+        Route::get('/disponibles/all', [MedecinController::class, 'getDisponibles']);
+        Route::get('/specialite/{specialiteId}', [MedecinController::class, 'getBySpecialite']);
+        Route::get('/{medecinId}/dashboard', [MedecinController::class, 'getDashboard']);
+    });
     Route::apiResource('/medecins', MedecinController::class);
-    Route::apiResource('/users', AuthController::class);
-
 
     // ========== PATIENTS ==========
-    Route::get('/patients/search/query', [PatientController::class, 'search']);
-    Route::get('/patients/{patientId}/dashboard', [PatientController::class, 'getDashboard']);
+    // Routes spécifiques AVANT apiResource
+    Route::prefix('patients')->group(function () {
+        Route::get('/mes-rendezvous', [PatientController::class, 'getMesRendezVous']);
+        Route::get('/mes-paiements', [PatientController::class, 'getMesPaiements']);
+        Route::get('/mes-consultations', [PatientController::class, 'getMesConsultations']);
+        Route::get('/mon-dossier-medical', [PatientController::class, 'getMonDossierMedical']);
+        Route::get('/mes-comptes-rendus', [PatientController::class, 'getMesComptesRendus']);
+        Route::get('/mon-profil', [PatientController::class, 'getMonProfil']);
+        Route::get('/search/query', [PatientController::class, 'search']);
+        Route::get('/{patientId}/dashboard', [PatientController::class, 'getDashboard']);
+    });
     Route::apiResource('/patients', PatientController::class);
 
     // ========== SECRÉTAIRES ==========
+    // Routes spécifiques AVANT apiResource
+    Route::prefix('secretaires')->group(function () {
+        Route::get('/mes-rendezvous', [SecretaireController::class, 'getRendezVousAVenir']);
+        Route::get('/dossier-medicaux', [SecretaireController::class, 'getDossiersMedicaux']);
+        Route::get('/paiements', [SecretaireController::class, 'getPaiementsNonPayes']);
+    });
     Route::apiResource('/secretaires', SecretaireController::class);
 
     // ========== SPÉCIALITÉS ==========
@@ -103,24 +123,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/statistiques/patients', [StatistiqueController::class, 'getStatistiquesPatients']);
     Route::get('/statistiques/departements', [StatistiqueController::class, 'getStatistiquesDepartements']);
 
-    Route::prefix('patients')->group(function () {
-        Route::get('/mes-rendezvous', [PatientController::class, 'getMesRendezVous']);
-        Route::get('/mes-paiements', [PatientController::class, 'getMesPaiements']);
-        Route::get('/mes-consultations', [PatientController::class, 'getMesConsultations']);
-        Route::get('/mon-dossier-medical', [PatientController::class, 'getMonDossierMedical']);
-    });
-
-    Route::prefix('medecins')->group(function () {
-        Route::get('/mes-rendezvous', [MedecinController::class, 'getMesRendezVous']);
-        Route::get('/mes-patients', [MedecinController::class, 'getMesPatients']);
-        Route::get('/mes-consultations', [MedecinController::class, 'getMesConsultations']);
-        Route::get('/dossier-medicaux', [MedecinController::class, 'getDossierMedicaux']);
-        Route::get('/compte-rendus', [MedecinController::class, 'getCompteRenduPatients']);
-    });
-    Route::prefix('secretaires')->group(function () {
-        Route::get('/mes-rendezvous', [SecretaireController::class, 'getRendezVousAVenir']);
-        Route::get('/dossier-medicaux', [SecretaireController::class, 'getDossierMedicaux']);
-        Route::get('/paiements', [SecretaireController::class, 'getPaiementsNonPayes']);
-    });
-
+    // ========== USERS ==========
+    Route::apiResource('/users', AuthController::class);
 });

@@ -5,14 +5,13 @@ namespace App\Services;
 use App\Helpers\ApiResponse;
 use App\Http\Resources\MedecinResource;
 use App\Http\Resources\PatientResource;
-use App\Http\Resources\UserResource;
 use App\Models\CompteRendu;
 use App\Models\Consultation;
 use App\Models\DossierMedical;
 use App\Models\Medecin;
-use App\Models\RendezVous;
-use App\Models\Secretaire;
-use App\Models\User;
+use App\Models\Patient;
+use App\Models\Rendezvous;
+use Illuminate\Support\Facades\Auth;
 
 class MedecinService
 {
@@ -29,7 +28,6 @@ class MedecinService
         }
     }
 
-
     /**
      * Récupérer un médecin par ID
      */
@@ -40,7 +38,7 @@ class MedecinService
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
-            return ApiResponse::success(new MedecinResource($medecin, 200, 'Médecin trouvé'));
+            return ApiResponse::success(new MedecinResource($medecin), 200, 'Médecin trouvé');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }
@@ -62,7 +60,6 @@ class MedecinService
                 return ApiResponse::error('Utilisateur associé introuvable', 404);
             }
 
-            // Mettre à jour l'utilisateur
             $user->update([
                 'nom'       => $request['nom'] ?? $user->nom,
                 'prenom'    => $request['prenom'] ?? $user->prenom,
@@ -76,14 +73,13 @@ class MedecinService
                 $user->save();
             }
 
-            // Mettre à jour le médecin
             $medecin->update([
                 'specialite' => $request['specialite'] ?? $medecin->specialite,
                 'departement' => $request['departement'] ?? $medecin->departement,
                 'disponible' => $request['disponible'] ?? $medecin->disponible,
             ]);
 
-            return ApiResponse::success(new MedecinResource($medecin->load('user'), 200, 'Médecin mis à jour avec succès'));
+            return ApiResponse::success(new MedecinResource($medecin->load('user')), 200, 'Médecin mis à jour avec succès');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }
@@ -113,11 +109,10 @@ class MedecinService
         }
     }
 
-
     public function getDisponibles()
     {
         try {
-            $medecins = Medecin::with(['user', 'specialite', 'departement'])
+            $medecins = Medecin::with(['user', 'specialite'])
                 ->where('disponible', true)
                 ->get();
 
@@ -130,7 +125,7 @@ class MedecinService
     public function getBySpecialite(string $specialiteId)
     {
         try {
-            $medecins = Medecin::with(['user', 'specialite', 'departement'])
+            $medecins = Medecin::with(['user', 'specialite'])
                 ->where('specialite_id', $specialiteId)
                 ->get();
 
@@ -143,34 +138,31 @@ class MedecinService
     public function getDashboard(string $medecinId)
     {
         try {
-            $medecin = Medecin::with(['user', 'specialite', 'departement'])->find($medecinId);
+            $medecin = Medecin::with(['user', 'specialite'])->find($medecinId);
 
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
 
-            // Statistiques
-            $totalRendezVous = RendezVous::where('medecin_id', $medecinId)->count();
-            $rendezVousEnAttente = RendezVous::where('medecin_id', $medecinId)
+            $totalRendezVous = Rendezvous::where('medecin_id', $medecinId)->count();
+            $rendezVousEnAttente = Rendezvous::where('medecin_id', $medecinId)
                 ->where('statut', 'en_attente')
                 ->count();
-            $rendezVousConfirmes = RendezVous::where('medecin_id', $medecinId)
+            $rendezVousConfirmes = Rendezvous::where('medecin_id', $medecinId)
                 ->where('statut', 'confirme')
                 ->count();
             $totalConsultations = Consultation::whereHas('rendezvous', function($query) use ($medecinId) {
                 $query->where('medecin_id', $medecinId);
             })->count();
 
-            // Rendez-vous d'aujourd'hui
             $today = now()->toDateString();
-            $rendezVousAujourdhui = RendezVous::with(['patient.user'])
+            $rendezVousAujourdhui = Rendezvous::with(['patient.user'])
                 ->where('medecin_id', $medecinId)
                 ->whereDate('date_rendezvous', $today)
                 ->orderBy('heure_rendezvous')
                 ->get();
 
-            // Prochains rendez-vous
-            $prochainsRendezVous = RendezVous::with(['patient.user'])
+            $prochainsRendezVous = Rendezvous::with(['patient.user'])
                 ->where('medecin_id', $medecinId)
                 ->where('date_rendezvous', '>=', now())
                 ->whereIn('statut', ['en_attente', 'confirme'])
@@ -197,25 +189,26 @@ class MedecinService
         }
     }
 
+    /**
+     * Récupérer tous les rendez-vous du médecin connecté
+     */
     public function getMesRendezVous()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le médecin associé à l'utilisateur
-            $medecin = Medecin::where('user_id', $user->id)->first();
+            $medecin = $user->medecin;
 
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
 
             // Récupérer tous les rendez-vous du médecin
-            $rendezVous = RendezVous::with([
+            $rendezVous = Rendezvous::with([
                 'patient.user',
                 'consultation'
             ])
@@ -245,30 +238,30 @@ class MedecinService
         }
     }
 
-
+    /**
+     * Récupérer tous les patients du médecin connecté
+     */
     public function getMesPatients()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le médecin associé à l'utilisateur
-            $medecin = Medecin::where('user_id', $user->id)->first();
+            $medecin = $user->medecin;
 
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
 
-            // Récupérer tous les patients uniques qui ont eu des rendez-vous avec ce médecin
+            // Récupérer tous les patients uniques
             $patients = Patient::with(['user', 'dossierMedical'])
-                ->whereHas('rendezVous', function($query) use ($medecin) {
+                ->whereHas('rendezvous', function($query) use ($medecin) {
                     $query->where('medecin_id', $medecin->id);
                 })
-                ->withCount(['rendezVous' => function($query) use ($medecin) {
+                ->withCount(['rendezvous' => function($query) use ($medecin) {
                     $query->where('medecin_id', $medecin->id);
                 }])
                 ->get();
@@ -293,25 +286,25 @@ class MedecinService
         }
     }
 
-
+    /**
+     * Récupérer toutes les consultations du médecin connecté
+     */
     public function getMesConsultations()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le médecin associé à l'utilisateur
-            $medecin = Medecin::where('user_id', $user->id)->first();
+            $medecin = $user->medecin;
 
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
 
-            // Récupérer toutes les consultations du médecin
+            // Récupérer toutes les consultations
             $consultations = Consultation::with([
                 'rendezvous.patient.user',
                 'compteRendu',
@@ -323,7 +316,7 @@ class MedecinService
                 ->orderBy('date_consultation', 'desc')
                 ->get();
 
-            // Statistiques des consultations
+            // Statistiques
             $statistiquesConsultations = [
                 'total_consultations' => $consultations->count(),
                 'consultations_ce_mois' => $consultations->filter(function($consultation) {
@@ -332,8 +325,12 @@ class MedecinService
                 'consultations_cette_annee' => $consultations->filter(function($consultation) {
                     return $consultation->date_consultation >= now()->startOfYear();
                 })->count(),
-                'avec_compte_rendu' => $consultations->whereNotNull('compteRendu')->count(),
-                'avec_paiement' => $consultations->whereNotNull('paiement')->count(),
+                'avec_compte_rendu' => $consultations->filter(function($consultation) {
+                    return $consultation->compteRendu !== null;
+                })->count(),
+                'avec_paiement' => $consultations->filter(function($consultation) {
+                    return $consultation->paiement !== null;
+                })->count(),
             ];
 
             return ApiResponse::success([
@@ -345,39 +342,38 @@ class MedecinService
         }
     }
 
-    public function getDossiersMedicaux()
+    /**
+     * Récupérer tous les dossiers médicaux accessibles au médecin connecté
+     */
+    public function getMesDossiersMedicaux()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le médecin associé à l'utilisateur
-            $medecin = Medecin::where('user_id', $user->id)->first();
+            $medecin = $user->medecin;
 
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
 
-            // Récupérer les dossiers médicaux des patients qui ont consulté ce médecin
+            // Récupérer les dossiers médicaux
             $dossiersMedicaux = DossierMedical::with(['patient.user'])
-                ->whereHas('patient.rendezVous', function($query) use ($medecin) {
+                ->whereHas('patient.rendezvous', function($query) use ($medecin) {
                     $query->where('medecin_id', $medecin->id);
                 })
                 ->get();
 
-            // Pour chaque dossier, ajouter des infos supplémentaires
+            // Enrichir avec des infos supplémentaires
             $dossiersMedicaux->each(function($dossier) use ($medecin) {
-                // Nombre de consultations avec ce médecin
                 $dossier->nombre_consultations_medecin = Consultation::whereHas('rendezvous', function($query) use ($dossier, $medecin) {
                     $query->where('patient_id', $dossier->patient_id)
                         ->where('medecin_id', $medecin->id);
                 })->count();
 
-                // Dernière consultation avec ce médecin
                 $dossier->derniere_consultation_medecin = Consultation::with(['rendezvous', 'compteRendu'])
                     ->whereHas('rendezvous', function($query) use ($dossier, $medecin) {
                         $query->where('patient_id', $dossier->patient_id)
@@ -396,24 +392,25 @@ class MedecinService
         }
     }
 
-    public function getCompteRenduPatients()
+    /**
+     * Récupérer tous les comptes rendus du médecin connecté
+     */
+    public function getMesComptesRendus()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le médecin associé à l'utilisateur
-            $medecin = Medecin::where('user_id', $user->id)->first();
+            $medecin = $user->medecin;
 
             if (!$medecin) {
                 return ApiResponse::error('Médecin introuvable', 404);
             }
 
-            // Récupérer tous les comptes rendus des consultations du médecin
+            // Récupérer tous les comptes rendus
             $comptesRendus = CompteRendu::with([
                 'consultation.rendezvous.patient.user',
                 'consultation.rendezvous.medecin.user'
@@ -424,9 +421,8 @@ class MedecinService
                 ->orderBy('date_creation', 'desc')
                 ->get();
 
-            // Enrichir chaque compte rendu avec des informations supplémentaires
+            // Enrichir avec des informations supplémentaires
             $comptesRendus->each(function($compteRendu) {
-                // Informations patient
                 $patient = $compteRendu->consultation->rendezvous->patient ?? null;
                 if ($patient) {
                     $compteRendu->patient_info = [
@@ -438,7 +434,6 @@ class MedecinService
                     ];
                 }
 
-                // Informations consultation
                 $consultation = $compteRendu->consultation;
                 if ($consultation) {
                     $compteRendu->consultation_info = [
@@ -450,7 +445,7 @@ class MedecinService
                 }
             });
 
-            // Statistiques des comptes rendus
+            // Statistiques
             $statistiquesComptesRendus = [
                 'total_comptes_rendus' => $comptesRendus->count(),
                 'ce_mois' => $comptesRendus->filter(function($cr) {
@@ -473,6 +468,51 @@ class MedecinService
                 'comptes_rendus' => $comptesRendus,
                 'statistiques' => $statistiquesComptesRendus
             ], 200, 'Comptes rendus récupérés avec succès');
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtenir le profil complet du médecin connecté
+     */
+    public function getMonProfil()
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return ApiResponse::error('Non authentifié', 401);
+            }
+
+            $medecin = $user->medecin()->with(['specialite', 'user'])->first();
+
+            if (!$medecin) {
+                return ApiResponse::error('Médecin introuvable', 404);
+            }
+
+            // Statistiques globales
+            $statistiques = [
+                'total_patients' => Patient::whereHas('rendezvous', function($query) use ($medecin) {
+                    $query->where('medecin_id', $medecin->id);
+                })->count(),
+
+                'total_rendezvous' => Rendezvous::where('medecin_id', $medecin->id)->count(),
+
+                'total_consultations' => Consultation::whereHas('rendezvous', function($query) use ($medecin) {
+                    $query->where('medecin_id', $medecin->id);
+                })->count(),
+
+                'total_comptes_rendus' => CompteRendu::whereHas('consultation.rendezvous', function($query) use ($medecin) {
+                    $query->where('medecin_id', $medecin->id);
+                })->count(),
+            ];
+
+            return ApiResponse::success([
+                'medecin' => $medecin,
+                'statistiques' => $statistiques
+            ], 200, 'Profil récupéré avec succès');
 
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);

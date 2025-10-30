@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\RendezVous;
+use App\Models\Rendezvous;
 
 class RendezVousService
 {
     public function index()
     {
-        $rendezVous = RendezVous::all();
+        $rendezVous = Rendezvous::all();
         return $rendezVous;
     }
 
@@ -16,14 +16,14 @@ class RendezVousService
     public function store(array $request)
     {
 
-        $rendezVous = RendezVous::create($request);
+        $rendezVous = Rendezvous::create($request);
         return $rendezVous;
     }
 
 
     public function show(string $id)
     {
-        return RendezVous::find($id);
+        return Rendezvous::find($id);
     }
 
 
@@ -37,12 +37,12 @@ class RendezVousService
 
     public function destroy(int $id)
     {
-        RendezVous::destroy($id);
+        Rendezvous::destroy($id);
     }
 
     public function getByPatient(string $patientId)
     {
-        return RendezVous::with(['medecin.user', 'medecin.specialite', 'consultation'])
+        return Rendezvous::with(['medecin.user', 'medecin.specialite', 'consultation'])
             ->where('patient_id', $patientId)
             ->orderBy('date_rendezvous', 'desc')
             ->orderBy('heure_rendezvous', 'desc')
@@ -51,7 +51,7 @@ class RendezVousService
 
     public function getByMedecin(string $medecinId)
     {
-        return RendezVous::with(['patient.user', 'consultation'])
+        return Rendezvous::with(['patient.user', 'consultation'])
             ->where('medecin_id', $medecinId)
             ->orderBy('date_rendezvous', 'desc')
             ->orderBy('heure_rendezvous', 'desc')
@@ -60,7 +60,7 @@ class RendezVousService
 
     public function getByDate(string $date)
     {
-        return RendezVous::with(['patient.user', 'medecin.user', 'medecin.specialite'])
+        return Rendezvous::with(['patient.user', 'medecin.user', 'medecin.specialite'])
             ->whereDate('date_rendezvous', $date)
             ->orderBy('heure_rendezvous')
             ->get();
@@ -68,7 +68,7 @@ class RendezVousService
 
     public function updateStatut(string $id, string $statut)
     {
-        $rendezVous = RendezVous::find($id);
+        $rendezVous = Rendezvous::find($id);
 
         if (!$rendezVous) {
             throw new \Exception('Rendez-vous introuvable');

@@ -94,9 +94,9 @@ class MedecinController extends Controller
      * Récupérer les dossier médical des patients
      * Route: GET /medecins/dossier-medicaux
      */
-    public function getDossierMedicaux()
+    public function getMesDossiersMedicaux()
     {
-        return $this->patientService->getDossierMedicaux();
+        return $this->medecinService->getMesDossiersMedicaux();
     }
     /**
      * Récupérer les consultations du patient connecté
@@ -115,9 +115,9 @@ class MedecinController extends Controller
     {
         return $this->medecinService->getMesPatients();
     }
- public function getCompteRenduPatients()
+ public function getMesComptesRendus ()
     {
-        return $this->medecinService->getCompteRenduPatients();
+        return $this->medecinService->getMesComptesRendus();
     }
 
 }

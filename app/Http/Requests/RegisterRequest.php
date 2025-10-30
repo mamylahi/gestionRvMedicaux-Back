@@ -27,7 +27,7 @@ class RegisterRequest extends FormRequest
             'adresse' => 'nullable|string|max:255',
             'telephone' => 'nullable|string|max:20',
             'email' => 'required|email|max:255',
-            'password' => 'required|string|min:6',
+            'password' => 'nullable|string|min:6',
             'role' => 'required|in:admin,medecin,secretaire,patient',
         ];
 
@@ -51,7 +51,7 @@ class RegisterRequest extends FormRequest
             'adresse.required' => 'L\'adresse est obligatoire.',
             'telephone.required' => 'Le telephone est obligatoire.',
             'email.required' => 'L\'email est obligatoire.',
-            'password.required' => 'Le mot de passe est obligatoire.',
+            'password' => 'Le mot de passe est obligatoire.',
             'role.required' => 'Le role est obligatoire.',
             'specialite_id.required' => 'La spécialité est obligatoire pour un médecin.',
             'specialite_id.exists' => 'La spécialité sélectionnée n\'existe pas.',

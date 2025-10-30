@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\RendezVous;
+use App\Models\Rendezvous;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 
@@ -46,7 +46,7 @@ class RendezVousSeeder extends Seeder
         ];
 
         foreach ($rendezvous as $rv) {
-            RendezVous::create($rv);
+            Rendezvous::create($rv);
         }
     }
 }

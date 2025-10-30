@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,12 +12,27 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $guarded = [];
+
+    // Add this to make sure id is always accessible
+    protected $appends = [];
+
+    // Make sure these are visible
+    protected $visible = [
+        'id', 'nom', 'prenom', 'email', 'telephone',
+        'adresse', 'role', 'created_at', 'updated_at'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'id' => 'integer', // Explicitly cast id as integer
+    ];
 
     public function patient()
     {
@@ -35,26 +49,6 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(Secretaire::class);
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
-
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -62,6 +56,9 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'role' => $this->role,
+            'id' => $this->id, // Add this
+        ];
     }
 }

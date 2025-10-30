@@ -11,7 +11,7 @@ class SecretaireSeeder extends Seeder
     {
         Secretaire::create([
             'numero_employe' => 'SEC-' . date('Y') . '-001',
-            'user_id' => 9 // Sophie Robert (la secrétaire, après les patients)
+            'user_id' => 9 // Sophie Ndiaye (la secrétaire, après les patients)
         ]);
     }
 }

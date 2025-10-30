@@ -4,13 +4,12 @@ namespace App\Services;
 
 use App\Helpers\ApiResponse;
 use App\Http\Resources\PatientResource;
-use App\Http\Resources\UserResource;
+use App\Models\CompteRendu;
 use App\Models\Consultation;
 use App\Models\DossierMedical;
 use App\Models\Paiement;
 use App\Models\Patient;
-use App\Models\RendezVous;
-use App\Models\User;
+use App\Models\Rendezvous;
 use Illuminate\Support\Facades\Auth;
 
 class PatientService
@@ -38,7 +37,7 @@ class PatientService
             if (!$patient) {
                 return ApiResponse::error('Patient introuvable', 404);
             }
-            return ApiResponse::success(new PatientResource($patient, 200, 'Patient trouvé'));
+            return ApiResponse::success(new PatientResource($patient), 200, 'Patient trouvé');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }
@@ -55,13 +54,11 @@ class PatientService
                 return ApiResponse::error('Patient introuvable', 404);
             }
 
-            // Récupérer l'utilisateur associé
             $user = $patient->user;
             if (!$user) {
                 return ApiResponse::error('Utilisateur associé introuvable', 404);
             }
 
-            // Mettre à jour l'utilisateur
             $user->update([
                 'nom'       => $request['nom'] ?? $user->nom,
                 'prenom'    => $request['prenom'] ?? $user->prenom,
@@ -75,8 +72,7 @@ class PatientService
                 $user->save();
             }
 
-
-            return ApiResponse::success(new PatientResource($patient->load('user'), 200, 'Patient mis à jour avec succès'));
+            return ApiResponse::success(new PatientResource($patient->load('user')), 200, 'Patient mis à jour avec succès');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }
@@ -93,13 +89,9 @@ class PatientService
                 return ApiResponse::error('Patient introuvable', 404);
             }
 
-            // Récupérer l'utilisateur
             $user = $patient->user;
-
-            // Supprimer le patient d'abord
             $patient->delete();
 
-            // Supprimer l'utilisateur
             if ($user) {
                 $user->delete();
             }
@@ -110,6 +102,9 @@ class PatientService
         }
     }
 
+    /**
+     * Rechercher des patients
+     */
     public function search(string $query)
     {
         try {
@@ -128,6 +123,9 @@ class PatientService
         }
     }
 
+    /**
+     * Récupérer le dashboard d'un patient spécifique
+     */
     public function getDashboard(string $patientId)
     {
         try {
@@ -137,23 +135,22 @@ class PatientService
                 return ApiResponse::error('Patient introuvable', 404);
             }
 
-            // Statistiques
-            $totalRendezVous = RendezVous::where('patient_id', $patientId)->count();
-            $rendezVousEnAttente = RendezVous::where('patient_id', $patientId)
-                ->where('statut', 'en_attente')
-                ->count();
-            $rendezVousConfirmes = RendezVous::where('patient_id', $patientId)
-                ->where('statut', 'confirme')
-                ->count();
+            $totalRendezVous = Rendezvous::where('patient_id', $patientId)->count();
             $totalConsultations = Consultation::whereHas('rendezvous', function($query) use ($patientId) {
                 $query->where('patient_id', $patientId);
             })->count();
 
-            // Dossier médical
-            $dossierMedical = DossierMedical::where('patient_id', $patientId)->first();
+            // Compter les ordonnances
+            $totalOrdonnances = Consultation::whereHas('rendezvous', function($query) use ($patientId) {
+                $query->where('patient_id', $patientId);
+            })->whereNotNull('ordonnance')->count();
 
-            // Prochain rendez-vous
-            $prochainRendezVous = RendezVous::with(['medecin.user', 'medecin.specialite'])
+            // Compter les paiements
+            $totalPaiements = Paiement::whereHas('consultation.rendezvous', function($query) use ($patientId) {
+                $query->where('patient_id', $patientId);
+            })->count();
+
+            $prochainRendezVous = Rendezvous::with(['medecin.user', 'medecin.specialite'])
                 ->where('patient_id', $patientId)
                 ->where('date_rendezvous', '>=', now())
                 ->whereIn('statut', ['en_attente', 'confirme'])
@@ -161,40 +158,28 @@ class PatientService
                 ->orderBy('heure_rendezvous')
                 ->first();
 
-            // Historique des rendez-vous
-            $historiqueRendezVous = RendezVous::with(['medecin.user', 'medecin.specialite'])
-                ->where('patient_id', $patientId)
-                ->orderBy('date_rendezvous', 'desc')
-                ->orderBy('heure_rendezvous', 'desc')
-                ->limit(10)
-                ->get();
-
-            // Dernières consultations
-            $dernieresConsultations = Consultation::with([
-                'rendezvous.medecin.user',
-                'rendezvous.medecin.specialite',
-                'compteRendu',
-                'paiement'
-            ])
-                ->whereHas('rendezvous', function($query) use ($patientId) {
-                    $query->where('patient_id', $patientId);
-                })
-                ->orderBy('date_consultation', 'desc')
-                ->limit(5)
-                ->get();
+            // Formatage du prochain rendez-vous pour le frontend
+            $prochainRdvFormatted = null;
+            if ($prochainRendezVous) {
+                $prochainRdvFormatted = [
+                    'id' => $prochainRendezVous->id,
+                    'date' => $prochainRendezVous->date_rendezvous,
+                    'heure' => $prochainRendezVous->heure_rendezvous,
+                    'medecin' => $prochainRendezVous->medecin->user->nom . ' ' . $prochainRendezVous->medecin->user->prenom,
+                    'specialite' => $prochainRendezVous->medecin->specialite->nom ?? 'Non spécifiée',
+                    'statut' => $prochainRendezVous->statut
+                ];
+            }
 
             $dashboard = [
                 'patient' => new PatientResource($patient),
                 'statistiques' => [
-                    'total_rendezvous' => $totalRendezVous,
-                    'rendezvous_en_attente' => $rendezVousEnAttente,
-                    'rendezvous_confirmes' => $rendezVousConfirmes,
-                    'total_consultations' => $totalConsultations,
+                    'mes_rendez_vous' => $totalRendezVous,
+                    'mes_consultations' => $totalConsultations,
+                    'ordonnances' => $totalOrdonnances,
+                    'mes_paiements' => $totalPaiements,
                 ],
-                'dossier_medical' => $dossierMedical,
-                'prochain_rendezvous' => $prochainRendezVous,
-                'historique_rendezvous' => $historiqueRendezVous,
-                'dernieres_consultations' => $dernieresConsultations,
+                'prochain_rendez_vous' => $prochainRdvFormatted,
             ];
 
             return ApiResponse::success($dashboard, 200, 'Dashboard patient récupéré');
@@ -203,25 +188,26 @@ class PatientService
         }
     }
 
+    /**
+     * Récupérer tous les rendez-vous du patient connecté
+     */
     public function getMesRendezVous()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le patient associé à l'utilisateur
-            $patient = Patient::where('user_id', $user->id)->first();
+            $patient = $user->patient;
 
             if (!$patient) {
                 return ApiResponse::error('Patient introuvable', 404);
             }
 
             // Récupérer tous les rendez-vous du patient
-            $rendezVous = RendezVous::with([
+            $rendezVous = Rendezvous::with([
                 'medecin.user',
                 'medecin.specialite',
                 'consultation'
@@ -231,30 +217,46 @@ class PatientService
                 ->orderBy('heure_rendezvous', 'desc')
                 ->get();
 
-            return ApiResponse::success($rendezVous, 200, 'Rendez-vous récupérés avec succès');
+            // Statistiques des rendez-vous
+            $statistiquesRendezVous = [
+                'total_rendezvous' => $rendezVous->count(),
+                'en_attente' => $rendezVous->where('statut', 'en_attente')->count(),
+                'confirmes' => $rendezVous->where('statut', 'confirme')->count(),
+                'termines' => $rendezVous->where('statut', 'termine')->count(),
+                'annules' => $rendezVous->where('statut', 'annule')->count(),
+                'aujourdhui' => $rendezVous->filter(function($rdv) {
+                    return $rdv->date_rendezvous == now()->toDateString();
+                })->count(),
+            ];
+
+            return ApiResponse::success([
+                'rendezvous' => $rendezVous,
+                'statistiques' => $statistiquesRendezVous
+            ], 200, 'Rendez-vous récupérés avec succès');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }
     }
 
+    /**
+     * Récupérer tous les paiements du patient connecté
+     */
     public function getMesPaiements()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le patient associé à l'utilisateur
-            $patient = Patient::where('user_id', $user->id)->first();
+            $patient = $user->patient;
 
             if (!$patient) {
                 return ApiResponse::error('Patient introuvable', 404);
             }
 
-            // Récupérer tous les paiements du patient via les consultations
+            // Récupérer tous les paiements du patient
             $paiements = Paiement::with([
                 'consultation.rendezvous.medecin.user',
                 'consultation.rendezvous.medecin.specialite'
@@ -265,7 +267,7 @@ class PatientService
                 ->orderBy('date_paiement', 'desc')
                 ->get();
 
-            // Calculer le total et les statistiques
+            // Statistiques des paiements
             $statistiquesPaiements = [
                 'total_paiements' => $paiements->count(),
                 'montant_total' => $paiements->where('statut', 'valide')->sum('montant'),
@@ -273,6 +275,14 @@ class PatientService
                 'paiements_valides' => $paiements->where('statut', 'valide')->count(),
                 'paiements_en_attente' => $paiements->where('statut', 'en_attente')->count(),
                 'paiements_annules' => $paiements->where('statut', 'annule')->count(),
+                'par_mois' => $paiements->where('statut', 'valide')->groupBy(function($paiement) {
+                    return $paiement->date_paiement->format('Y-m');
+                })->map(function($group) {
+                    return [
+                        'count' => $group->count(),
+                        'montant' => $group->sum('montant')
+                    ];
+                }),
             ];
 
             return ApiResponse::success([
@@ -284,19 +294,19 @@ class PatientService
         }
     }
 
-
+    /**
+     * Récupérer toutes les consultations du patient connecté
+     */
     public function getMesConsultations()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le patient associé à l'utilisateur
-            $patient = Patient::where('user_id', $user->id)->first();
+            $patient = $user->patient;
 
             if (!$patient) {
                 return ApiResponse::error('Patient introuvable', 404);
@@ -324,6 +334,12 @@ class PatientService
                 'consultations_cette_annee' => $consultations->filter(function($consultation) {
                     return $consultation->date_consultation >= now()->startOfYear();
                 })->count(),
+                'avec_compte_rendu' => $consultations->filter(function($consultation) {
+                    return $consultation->compteRendu !== null;
+                })->count(),
+                'avec_paiement' => $consultations->filter(function($consultation) {
+                    return $consultation->paiement !== null;
+                })->count(),
             ];
 
             return ApiResponse::success([
@@ -335,18 +351,19 @@ class PatientService
         }
     }
 
+    /**
+     * Récupérer le dossier médical du patient connecté
+     */
     public function getMonDossierMedical()
     {
         try {
-            // Récupérer l'utilisateur connecté
             $user = Auth::user();
 
             if (!$user) {
                 return ApiResponse::error('Non authentifié', 401);
             }
 
-            // Récupérer le patient associé à l'utilisateur
-            $patient = Patient::where('user_id', $user->id)->first();
+            $patient = $user->patient;
 
             if (!$patient) {
                 return ApiResponse::error('Patient introuvable', 404);
@@ -360,21 +377,26 @@ class PatientService
             }
 
             // Enrichir avec des informations supplémentaires
+            $nombreConsultations = Consultation::whereHas('rendezvous', function($query) use ($patient) {
+                $query->where('patient_id', $patient->id);
+            })->count();
+
+            $derniereConsultation = Consultation::with([
+                'rendezvous.medecin.user',
+                'rendezvous.medecin.specialite',
+                'compteRendu'
+            ])
+                ->whereHas('rendezvous', function($query) use ($patient) {
+                    $query->where('patient_id', $patient->id);
+                })
+                ->orderBy('date_consultation', 'desc')
+                ->first();
+
             $dossierComplet = [
                 'dossier_medical' => $dossierMedical,
                 'patient' => new PatientResource($patient->load('user')),
-                'nombre_consultations' => Consultation::whereHas('rendezvous', function($query) use ($patient) {
-                    $query->where('patient_id', $patient->id);
-                })->count(),
-                'derniere_consultation' => Consultation::with([
-                    'rendezvous.medecin.user',
-                    'compteRendu'
-                ])
-                    ->whereHas('rendezvous', function($query) use ($patient) {
-                        $query->where('patient_id', $patient->id);
-                    })
-                    ->orderBy('date_consultation', 'desc')
-                    ->first(),
+                'nombre_consultations' => $nombreConsultations,
+                'derniere_consultation' => $derniereConsultation,
             ];
 
             return ApiResponse::success($dossierComplet, 200, 'Dossier médical récupéré avec succès');
@@ -383,4 +405,134 @@ class PatientService
         }
     }
 
+    /**
+     * Récupérer tous les comptes rendus accessibles au patient connecté
+     */
+    public function getMesComptesRendus()
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return ApiResponse::error('Non authentifié', 401);
+            }
+
+            $patient = $user->patient;
+
+            if (!$patient) {
+                return ApiResponse::error('Patient introuvable', 404);
+            }
+
+            // Récupérer tous les comptes rendus
+            $comptesRendus = CompteRendu::with([
+                'consultation.rendezvous.medecin.user',
+                'consultation.rendezvous.medecin.specialite',
+                'consultation.rendezvous.patient.user'
+            ])
+                ->whereHas('consultation.rendezvous', function($query) use ($patient) {
+                    $query->where('patient_id', $patient->id);
+                })
+                ->orderBy('date_creation', 'desc')
+                ->get();
+
+            // Enrichir avec des informations supplémentaires
+            $comptesRendus->each(function($compteRendu) {
+                $medecin = $compteRendu->consultation->rendezvous->medecin ?? null;
+                if ($medecin) {
+                    $compteRendu->medecin_info = [
+                        'id' => $medecin->id,
+                        'nom_complet' => $medecin->user->nom . ' ' . $medecin->user->prenom,
+                        'specialite' => $medecin->specialite->nom ?? 'Non spécifiée',
+                        'telephone' => $medecin->user->telephone,
+                    ];
+                }
+
+                $consultation = $compteRendu->consultation;
+                if ($consultation) {
+                    $compteRendu->consultation_info = [
+                        'id' => $consultation->id,
+                        'date_consultation' => $consultation->date_consultation,
+                        'heure_consultation' => $consultation->heure_consultation,
+                        'motif' => $consultation->motif ?? 'Non spécifié',
+                    ];
+                }
+            });
+
+            // Statistiques
+            $statistiquesComptesRendus = [
+                'total_comptes_rendus' => $comptesRendus->count(),
+                'ce_mois' => $comptesRendus->filter(function($cr) {
+                    return $cr->date_creation >= now()->startOfMonth();
+                })->count(),
+                'cette_semaine' => $comptesRendus->filter(function($cr) {
+                    return $cr->date_creation >= now()->startOfWeek();
+                })->count(),
+                'aujourd_hui' => $comptesRendus->filter(function($cr) {
+                    return $cr->date_creation >= now()->startOfDay();
+                })->count(),
+                'par_mois' => $comptesRendus->groupBy(function($cr) {
+                    return $cr->date_creation->format('Y-m');
+                })->map(function($group) {
+                    return $group->count();
+                }),
+            ];
+
+            return ApiResponse::success([
+                'comptes_rendus' => $comptesRendus,
+                'statistiques' => $statistiquesComptesRendus
+            ], 200, 'Comptes rendus récupérés avec succès');
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtenir le profil complet du patient connecté
+     */
+    public function getMonProfil()
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                return ApiResponse::error('Non authentifié', 401);
+            }
+
+            $patient = $user->patient()->with(['user', 'dossierMedical'])->first();
+
+            if (!$patient) {
+                return ApiResponse::error('Patient introuvable', 404);
+            }
+
+            // Statistiques globales
+            $statistiques = [
+                'total_rendezvous' => Rendezvous::where('patient_id', $patient->id)->count(),
+
+                'total_consultations' => Consultation::whereHas('rendezvous', function($query) use ($patient) {
+                    $query->where('patient_id', $patient->id);
+                })->count(),
+
+                'total_paiements' => Paiement::whereHas('consultation.rendezvous', function($query) use ($patient) {
+                    $query->where('patient_id', $patient->id);
+                })->count(),
+
+                'total_comptes_rendus' => CompteRendu::whereHas('consultation.rendezvous', function($query) use ($patient) {
+                    $query->where('patient_id', $patient->id);
+                })->count(),
+
+                'montant_total_paye' => Paiement::whereHas('consultation.rendezvous', function($query) use ($patient) {
+                    $query->where('patient_id', $patient->id);
+                })->where('statut', 'valide')->sum('montant'),
+            ];
+
+            return ApiResponse::success([
+                'patient' => $patient,
+                'statistiques' => $statistiques
+            ], 200, 'Profil récupéré avec succès');
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
 }

@@ -5,8 +5,13 @@ namespace App\Services;
 use App\Helpers\ApiResponse;
 use App\Http\Resources\SecretaireResource;
 use App\Http\Resources\UserResource;
+use App\Models\Consultation;
+use App\Models\DossierMedical;
+use App\Models\Paiement;
+use App\Models\Rendezvous;
 use App\Models\Secretaire;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 class SecretaireService
 {

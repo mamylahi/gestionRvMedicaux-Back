@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RendezVousRequest;
-use App\Models\RendezVous;
+use App\Models\Rendezvous;
 use App\Services\RendezVousService;
 use Illuminate\Http\Request;
 
