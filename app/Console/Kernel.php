@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // Envoie les rappels tous les jours à 18h00
+        $schedule->command('rendezvous:rappel')->dailyAt('18:00');
     }
 
     /**
