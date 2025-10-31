@@ -12,6 +12,8 @@ use App\Models\Rendezvous;
 use App\Models\Secretaire;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class SecretaireService
 {
@@ -29,6 +31,52 @@ class SecretaireService
     }
 
     /**
+     * CORRECTION: Méthode store ajoutée
+     * Créer un nouveau secrétaire
+     */
+    public function store(array $data)
+    {
+        DB::beginTransaction();
+
+        try {
+            // 1. Créer l'utilisateur
+            $user = User::create([
+                'nom' => $data['nom'],
+                'prenom' => $data['prenom'],
+                'email' => $data['email'],
+                'telephone' => $data['telephone'] ?? null,
+                'adresse' => $data['adresse'] ?? null,
+                'password' => Hash::make($data['password']),
+                'role' => 'secretaire'
+            ]);
+
+            // 2. Générer le numéro d'employé si non fourni
+            $numeroEmploye = $data['numero_employe'] ?? $this->generateNumeroEmploye();
+
+            // 3. Créer le secrétaire
+            $secretaire = Secretaire::create([
+                'user_id' => $user->id,
+                'numero_employe' => $numeroEmploye,
+            ]);
+
+            DB::commit();
+
+            // Charger la relation user
+            $secretaire->load('user');
+
+            return ApiResponse::success(
+                new SecretaireResource($secretaire),
+                201,
+                'Secrétaire créé avec succès'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ApiResponse::error('Erreur lors de la création du secrétaire: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Récupérer une secrétaire par ID
      */
     public function show(string $id)
@@ -38,7 +86,7 @@ class SecretaireService
             if (!$secretaire) {
                 return ApiResponse::error('Secrétaire introuvable', 404);
             }
-            return ApiResponse::success(new SecretaireResource($secretaire, 200, 'Secrétaire trouvée'));
+            return ApiResponse::success(new SecretaireResource($secretaire), 200, 'Secrétaire trouvée');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }
@@ -49,8 +97,10 @@ class SecretaireService
      */
     public function update(array $request, string $id)
     {
+        DB::beginTransaction();
+
         try {
-            $secretaire = Secretaire::find($id);
+            $secretaire = Secretaire::with('user')->find($id);
             if (!$secretaire) {
                 return ApiResponse::error('Secrétaire introuvable', 404);
             }
@@ -61,30 +111,48 @@ class SecretaireService
             }
 
             // Mettre à jour l'utilisateur
-            $user->update([
+            $userData = [
                 'nom'       => $request['nom'] ?? $user->nom,
                 'prenom'    => $request['prenom'] ?? $user->prenom,
                 'adresse'   => $request['adresse'] ?? $user->adresse,
                 'telephone' => $request['telephone'] ?? $user->telephone,
                 'email'     => $request['email'] ?? $user->email,
-            ]);
+            ];
 
+            // Mettre à jour le mot de passe si fourni
             if (!empty($request['password'])) {
-                $user->password = bcrypt($request['password']);
-                $user->save();
+                $userData['password'] = Hash::make($request['password']);
             }
 
-            return ApiResponse::success(new SecretaireResource($secretaire->load('user'), 200, 'Secrétaire mise à jour avec succès'));
+            $user->update($userData);
+
+            // Mettre à jour le numéro d'employé si fourni
+            if (isset($request['numero_employe'])) {
+                $secretaire->update([
+                    'numero_employe' => $request['numero_employe']
+                ]);
+            }
+
+            DB::commit();
+
+            return ApiResponse::success(
+                new SecretaireResource($secretaire->load('user')),
+                200,
+                'Secrétaire mise à jour avec succès'
+            );
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(), 500);
+            DB::rollBack();
+            return ApiResponse::error('Erreur lors de la mise à jour: ' . $e->getMessage(), 500);
         }
     }
 
     /**
      * Supprimer une secrétaire
      */
-    public function destroy(int $id)
+    public function destroy(string $id)
     {
+        DB::beginTransaction();
+
         try {
             $secretaire = Secretaire::find($id);
             if (!$secretaire) {
@@ -92,18 +160,36 @@ class SecretaireService
             }
 
             $user = $secretaire->user;
+
+            // Supprimer le secrétaire
             $secretaire->delete();
 
+            // Supprimer l'utilisateur associé
             if ($user) {
                 $user->delete();
             }
 
+            DB::commit();
+
             return ApiResponse::success([], 200, 'Secrétaire et utilisateur supprimés avec succès');
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(), 500);
+            DB::rollBack();
+            return ApiResponse::error('Erreur lors de la suppression: ' . $e->getMessage(), 500);
         }
     }
 
+    /**
+     * CORRECTION: Méthode generateNumeroEmploye ajoutée
+     * Générer un numéro d'employé unique
+     */
+    private function generateNumeroEmploye()
+    {
+        $year = date('y');
+        $month = date('m');
+        $random = str_pad(rand(0, 9999), 4, '0', STR_PAD_LEFT);
+
+        return "SEC-{$year}{$month}{$random}";
+    }
 
     public function getRendezVousAVenir()
     {
@@ -252,7 +338,6 @@ class SecretaireService
         }
     }
 
-
     public function getPaiementsNonPayes()
     {
         try {
@@ -349,5 +434,4 @@ class SecretaireService
             return ApiResponse::error($e->getMessage(), 500);
         }
     }
-
 }

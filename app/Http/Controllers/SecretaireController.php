@@ -10,15 +10,30 @@ use Illuminate\Http\Request;
 class SecretaireController extends Controller
 {
     protected $secretaireService;
+
+    /**
+     * Constructeur
+     */
+    public function __construct()
+    {
+        $this->secretaireService = new SecretaireService();
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function __construct(){
-        $this->secretaireService = new SecretaireService();
-    }
     public function index()
     {
-       return $this->secretaireService->index();
+        return $this->secretaireService->index();
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     * CORRECTION: Méthode manquante ajoutée
+     */
+    public function store(SecretaireRequest $request)
+    {
+        return $this->secretaireService->store($request->validated());
     }
 
     /**
@@ -26,7 +41,7 @@ class SecretaireController extends Controller
      */
     public function show(string $id)
     {
-       return $this->secretaireService->show($id);
+        return $this->secretaireService->show($id);
     }
 
     /**
@@ -35,15 +50,15 @@ class SecretaireController extends Controller
     public function update(SecretaireRequest $request, string $id)
     {
         return $this->secretaireService->update($request->validated(), $id);
-
     }
 
     /**
      * Remove the specified resource from storage.
+     * CORRECTION: Appel à destroy au lieu de index
      */
     public function destroy(string $id)
     {
-       return $this->secretaireService->index();
+        return $this->secretaireService->destroy($id);
     }
 
     /**
@@ -65,13 +80,11 @@ class SecretaireController extends Controller
     }
 
     /**
-     * Récupérer les paiement effectué
+     * Récupérer les paiement non payés
      * Route: GET /secretaires/paiements
      */
     public function getPaiementsNonPayes()
     {
         return $this->secretaireService->getPaiementsNonPayes();
     }
-
-
 }

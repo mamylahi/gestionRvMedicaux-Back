@@ -535,4 +535,6 @@ class PatientService
             return ApiResponse::error($e->getMessage(), 500);
         }
     }
+
+
 }

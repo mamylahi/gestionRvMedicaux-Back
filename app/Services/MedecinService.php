@@ -60,6 +60,7 @@ class MedecinService
                 return ApiResponse::error('Utilisateur associé introuvable', 404);
             }
 
+            // Mise à jour des données utilisateur
             $user->update([
                 'nom'       => $request['nom'] ?? $user->nom,
                 'prenom'    => $request['prenom'] ?? $user->prenom,
@@ -68,18 +69,24 @@ class MedecinService
                 'email'     => $request['email'] ?? $user->email,
             ]);
 
+            // Mise à jour du mot de passe si fourni
             if (!empty($request['password'])) {
                 $user->password = bcrypt($request['password']);
                 $user->save();
             }
 
+            // ✅ CORRECTION : Utiliser specialite_id au lieu de specialite
             $medecin->update([
-                'specialite' => $request['specialite'] ?? $medecin->specialite,
-                'departement' => $request['departement'] ?? $medecin->departement,
-                'disponible' => $request['disponible'] ?? $medecin->disponible,
+                'numero_medecin' => $request['numero_medecin'] ?? $medecin->numero_medecin,
+                'specialite_id'  => $request['specialite_id'] ?? $medecin->specialite_id,
+                'disponible'     => $request['disponible'] ?? $medecin->disponible,
             ]);
 
-            return ApiResponse::success(new MedecinResource($medecin->load('user')), 200, 'Médecin mis à jour avec succès');
+            return ApiResponse::success(
+                new MedecinResource($medecin->load('user', 'specialite')),
+                200,
+                'Médecin mis à jour avec succès'
+            );
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
         }

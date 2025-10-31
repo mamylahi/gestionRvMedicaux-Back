@@ -29,13 +29,13 @@ class PatientController extends Controller
        return $this->patientService->show($id);
     }
 
+
     /**
      * Update the specified resource in storage.
      */
     public function update(PatientRequest $request, string $id)
     {
-        return $this->patientService->index();
-
+        return $this->patientService->update($request->validated(), $id);
     }
 
     /**
