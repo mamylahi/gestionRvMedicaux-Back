@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'payment' => [
+        'mode' => env('PAYMENT_MODE', 'test'),
+        'public_key' => env('PAYMENT_PUBLIC_KEY'),
+        'private_key' => env('PAYMENT_PRIVATE_KEY'),
+        'token' => env('PAYMENT_TOKEN'),
+    ],
+
 ];

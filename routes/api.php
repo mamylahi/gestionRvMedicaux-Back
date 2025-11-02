@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MedecinController;
 use App\Http\Controllers\PatientController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SecretaireController;
 use App\Http\Controllers\SpecialiteController;
 use App\Http\Controllers\DepartementController;
@@ -126,3 +127,4 @@ Route::middleware('auth:api')->group(function () {
     // ========== USERS ==========
     Route::apiResource('/users', AuthController::class);
 });
+
