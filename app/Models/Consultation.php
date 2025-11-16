@@ -29,4 +29,15 @@ class Consultation extends Model
     {
         return $this->hasOne(Paiement::class);
     }
+
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class, 'patient_id');
+    }
+
+    public function medecin()
+    {
+        return $this->belongsTo(Medecin::class, 'medecin_id');
+    }
+
 }
