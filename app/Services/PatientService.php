@@ -276,7 +276,7 @@ class PatientService
                 'paiements_en_attente' => $paiements->where('statut', 'en_attente')->count(),
                 'paiements_annules' => $paiements->where('statut', 'annule')->count(),
                 'par_mois' => $paiements->where('statut', 'valide')->groupBy(function($paiement) {
-                    return $paiement->date_paiement->format('Y-m');
+                    return \Carbon\Carbon::parse($paiement->date_paiement)->format('Y-m');
                 })->map(function($group) {
                     return [
                         'count' => $group->count(),
