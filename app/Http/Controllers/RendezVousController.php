@@ -27,8 +27,18 @@ class RendezVousController extends Controller
      */
     public function store(RendezVousRequest $request)
     {
-        $rendezVous = $this->rendezvousService->store($request->validated());
-        return response()->json($rendezVous,201);
+        try {
+            $rendezVous = $this->rendezvousService->store($request->validated());
+            return response()->json([
+                'message' => 'Rendez-vous créé avec succès',
+                'rendezvous' => $rendezVous
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la création du rendez-vous',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
