@@ -19,7 +19,7 @@ class Patient extends Model
 
     public function rendezvous()
     {
-        return $this->hasMany(RendezVous::class);
+        return $this->hasMany(Rendezvous::class);
     }
 
     public function dossierMedical()

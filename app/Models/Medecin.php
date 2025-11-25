@@ -29,7 +29,7 @@ class Medecin extends Model
 
     public function rendezvous()
     {
-        return $this->hasMany(RendezVous::class);
+        return $this->hasMany(Rendezvous::class);
     }
 
     public function consultation()

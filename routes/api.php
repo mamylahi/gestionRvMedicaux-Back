@@ -3,7 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MedecinController;
 use App\Http\Controllers\PatientController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\SecretaireController;
 use App\Http\Controllers\SpecialiteController;
 use App\Http\Controllers\DepartementController;
@@ -12,7 +12,6 @@ use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\ConsultationController;
 use App\Http\Controllers\CompteRenduController;
 use App\Http\Controllers\DossierMedicalController;
-use App\Http\Controllers\PaiementController;
 use App\Http\Controllers\StatistiqueController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;

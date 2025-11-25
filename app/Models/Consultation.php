@@ -17,7 +17,7 @@ class Consultation extends Model
 
     public function rendezvous()
     {
-        return $this->belongsTo(RendezVous::class, 'rendezvous_id');
+        return $this->belongsTo(Rendezvous::class, 'rendezvous_id');
     }
 
     public function compteRendu()
